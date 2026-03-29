@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealtorOne CRM — Content Automation Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-green: #0D3B2E;
+            --accent-gold: #F4B942;
+            --white: #FFFFFF;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --success: #28a745;
+            --warning: #ffc107;
+            --pending: #6c757d;
+            --danger: #dc3545;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+        
+        .status-badge {
+            background: var(--accent-gold);
+            color: var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: var(--white);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab:hover {
+            background: var(--light-gray);
+        }
+        
+        .nav-tab.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--accent-gold);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-card h3 {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+        
+        .stat-card .trend {
+            font-size: 12px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .trend.up { color: var(--success); }
+        .trend.down { color: var(--danger); }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .chart-card h3 {
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        /* Section */
+        .section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section h2 {
+            color: var(--primary-green);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gold);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: var(--white);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--primary-green);
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .content-card {
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .content-card:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .content-card.published {
+            border-left: 4px solid var(--success);
+        }
+        
+        .content-card.unpublished {
+            border-left: 4px solid var(--pending);
+            opacity: 0.8;
+        }
+        
+        .content-card.scheduled {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        
+        .content-title {
+            font-weight: 700;
+            color: var(--primary-green);
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .content-meta {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .status-tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .status-tag.published {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .status-tag.unpublished {
+            background: rgba(108, 117, 125, 0.1);
+            color: var(--pending);
+        }
+        
+        .status-tag.scheduled {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+        
+        .market-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .market-badge.us {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .market-badge.nigeria {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .content-metrics {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+        }
+        
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .metric-icon {
+            font-size: 14px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--white);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .modal-content-preview {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: #333;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .modal-actions {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--accent-gold);
+            color: var(--primary-green);
+        }
+        
+        .btn-primary:hover {
+            background: #e5ac3b;
+        }
+        
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        /* Performance Metrics Table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .metrics-table th {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .metrics-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .metrics-table tr:hover {
+            background: var(--light-gray);
+        }
+        
+        .performance-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-fill {
+            height: 100%;
+            background: var(--accent-gold);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Quick Links */
+        .quick-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-link {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quick-link:hover {
+            background: var(--accent-gold);
+            color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 13px;
+            border-top: 1px solid #ddd;
+            margin-top: 30px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .content-grid { grid-template-columns: 1fr; }
+            .nav-tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            <div class="logo">R1</div>
+            RealtorOne CRM — Content Automation Dashboard
+        </h1>
+        <span class="status-badge">🟢 SYSTEM ACTIVE</span>
+    </header>
+    
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('overview')">📊 Overview</button>
+            <button class="nav-tab" onclick="switchTab('content')">📝 Content Library</button>
+            <button class="nav-tab" onclick="switchTab('performance')">📈 Performance</button>
+            <button class="nav-tab" onclick="switchTab('automation')">⚙️ Automation</button>
+        </div>
+        
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Content</h3>
+                    <div class="value">14</div>
+                    <div class="trend up">↑ 100% vs last week</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Published</h3>
+                    <div class="value" style="color: var(--success);">14</div>
+                    <div class="trend up">↑ All live</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Scheduled</h3>
+                    <div class="value" style="color: var(--warning);">0</div>
+                    <div class="trend">Next: Apr 6</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Reach</h3>
+                    <div class="value">2.4K</div>
+                    <div class="trend up">↑ 12% vs last week</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Engagement Rate</h3>
+                    <div class="value">4.8%</div>
+                    <div class="trend up">↑ 0.3% vs last week</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Click-Through Rate</h3>
+                    <div class="value">2.1%</div>
+                    <div class="trend up">↑ 0.5% vs last week</div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Content Performance by Platform</h3>
+                    <canvas id="platformChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Weekly Content Output</h3>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Content Rotation -->
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">📅</span> Content Rotation Status</h2>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card published" onclick="showContentDetails('week1')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Week 1: Market News & Trends</div>
+                                <div class="content-meta">March 29, 2026</div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 1.2K views</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 45 comments</div>
+                            <div class="metric"><span class="metric-icon">🔗</span> 23 shares</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card scheduled" onclick="showContentDetails('week2')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Week 2: CRM Tips & Productivity</div>
+                                <div class="content-meta">April 6, 2026</div>
+                            </div>
+                            <span class="status-tag scheduled">⏳ SCHEDULED</span>
+                        </div>
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">📝</span> 14 pieces ready</div>
+                            <div class="metric"><span class="metric-icon">⏰</span> Auto-publish Mon 8:07 AM</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card unpublished" onclick="showContentDetails('week3')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Week 3: Agent Success Stories</div>
+                                <div class="content-meta">April 13, 2026</div>
+                            </div>
+                            <span class="status-tag unpublished">⏸️ PENDING</span>
+                        </div>
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">📝</span> Will generate on Apr 6</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card unpublished" onclick="showContentDetails('week4')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Week 4: Client Education</div>
+                                <div class="content-meta">April 20, 2026</div>
+                            </div>
+                            <span class="status-tag unpublished">⏸️ PENDING</span>
+                        </div>
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">📝</span> Will generate on Apr 13</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CONTENT LIBRARY TAB -->
+        <div id="content" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">📁</span> Content Library</h2>
+                    <div class="filter-controls">
+                        <button class="filter-btn active" onclick="filterContent('all')">All</button>
+                        <button class="filter-btn" onclick="filterContent('published')">✅ Published</button>
+                        <button class="filter-btn" onclick="filterContent('scheduled')">⏳ Scheduled</button>
+                        <button class="filter-btn" onclick="filterContent('unpublished')">⏸️ Unpublished</button>
+                    </div>
+                </div>
+                
+                <div id="contentGrid" class="content-grid">
+                    <!-- US Content -->
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-blog', 'US Week 1 Blog')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">The #1 Reason Agents Lose $50K+ in Commissions</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">Blog</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 1,100 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 342 views</div>
+                            <div class="metric"><span class="metric-icon">⏱️</span> 4m read</div>
+                            <div class="metric"><span class="metric-icon">🔗</span> 12 clicks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-email', 'US Week 1 Email')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Your Market Advantage This Week</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">Email</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • Newsletter</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">📧</span> 89 opens (32%)</div>
+                            <div class="metric"><span class="metric-icon">🖱️</span> 15 clicks (17%)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-facebook', 'US Facebook Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">🔥 Housing Inventory Is Finally Creeping Back</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">Facebook</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 185 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 567 reach</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 23 comments</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 8 shares</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-instagram', 'US Instagram Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">The Agents Winning in 2026 📊</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">Instagram</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 115 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 423 impressions</div>
+                            <div class="metric"><span class="metric-icon">❤️</span> 67 likes</div>
+                            <div class="metric"><span class="metric-icon">💾</span> 12 saves</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-linkedin', 'US LinkedIn Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">The "Great Recalibration" Is Here</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">LinkedIn</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 235 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 289 views</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 8 comments</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 5 reposts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-twitter', 'US X/Twitter Thread')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Inventory Up 7.9% Nationally 🧵</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">X/Twitter</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 3-tweet thread</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 1.2K impressions</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 15 replies</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 23 retweets</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('us-reddit', 'US Reddit Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Market Update: Inventory Recovery</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge us">🇺🇸 US</span>
+                                    <span class="type-badge">Reddit</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • r/realtors</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">⬆️</span> 45 upvotes</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 12 comments</div>
+                            <div class="metric"><span class="metric-icon">🏆</span> 94% upvote rate</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nigeria Content -->
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-blog', 'Nigeria Week 1 Blog')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Nigeria Real Estate 2026: Smart Agents Banking Their Future</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">Blog</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 1,100 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 298 views</div>
+                            <div class="metric"><span class="metric-icon">⏱️</span> 5m read</div>
+                            <div class="metric"><span class="metric-icon">🔗</span> 18 clicks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-email', 'Nigeria Week 1 Email')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">The Lekki-Epe Corridor Is Exploding 🚀</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">Email</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • Newsletter</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">📧</span> 156 opens (28%)</div>
+                            <div class="metric"><span class="metric-icon">🖱️</span> 31 clicks (20%)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-facebook', 'Nigeria Facebook Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">🔥 The Lekki-Epe Corridor Is On Fire</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">Facebook</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 160 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 445 reach</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 34 comments</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 12 shares</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-instagram', 'Nigeria Instagram Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">The Nigerian Agents Closing Deals in 2026 👇</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">Instagram</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 120 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 389 impressions</div>
+                            <div class="metric"><span class="metric-icon">❤️</span> 78 likes</div>
+                            <div class="metric"><span class="metric-icon">💾</span> 23 saves</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-linkedin', 'Nigeria LinkedIn Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Dangote Refinery Reshaping Real Estate</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">LinkedIn</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 220 words</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 234 views</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 12 comments</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 8 reposts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-twitter', 'Nigeria X/Twitter Thread')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Dangote Refinery: 20-35% Appreciation 🧵</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">X/Twitter</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • 3-tweet thread</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">👁️</span> 892 impressions</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 19 replies</div>
+                            <div class="metric"><span class="metric-icon">🔄</span> 31 retweets</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card published" data-status="published" onclick="previewContent('nigeria-reddit', 'Nigeria Reddit Post')">
+                        <div class="content-header">
+                            <div>
+                                <div class="content-title">Lekki-Epe Boom: Agents Adapting to Diaspora Demand</div>
+                                <div style="margin-top: 8px;">
+                                    <span class="market-badge nigeria">🇳🇬 Nigeria</span>
+                                    <span class="type-badge">Reddit</span>
+                                </div>
+                            </div>
+                            <span class="status-tag published">✅ PUBLISHED</span>
+                        </div>
+                        <div class="content-meta">March 29, 2026 • r/NigerianRealEstate</div>
+                        
+                        <div class="content-metrics">
+                            <div class="metric"><span class="metric-icon">⬆️</span> 67 upvotes</div>
+                            <div class="metric"><span class="metric-icon">💬</span> 18 comments</div>
+                            <div class="metric"><span class="metric-icon">🏆</span> 96% upvote rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PERFORMANCE TAB -->
+        <div id="performance" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">📊</span> Performance Overview</h2>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Engagement by Platform</h3>
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Click-Through Rate Comparison</h3>
+                        <canvas id="ctrChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">📈</span> Content Performance Metrics</h2>
+                </div>
+                
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>Reach</th>
+                            <th>Engagement</th>
+                            <th>CTR</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>X/Twitter</strong></td>
+                            <td>2,092</td>
+                            <td>4.2%</td>
+                            <td>2.8%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 92%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Blog</strong></td>
+                            <td>640</td>
+                            <td>5.6%</td>
+                            <td>4.7%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 88%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Instagram</strong></td>
+                            <td>812</td>
+                            <td>18.9%</td>
+                            <td>1.2%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 76%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Facebook</strong></td>
+                            <td>1,012</td>
+                            <td>5.5%</td>
+                            <td>1.9%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 68%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn</strong></td>
+                            <td>523</td>
+                            <td>4.4%</td>
+                            <td>2.1%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 64%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reddit</strong></td>
+                            <td>112</td>
+                            <td>26.8%</td>
+                            <td>1.8%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 58%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>245</td>
+                            <td>30.2%</td>
+                            <td>18.8%</td>
+                            <td>
+                                <div class="performance-bar">
+                                    <div class="performance-fill" style="width: 95%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">🎯</span> Market Comparison</h2>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>US vs Nigeria — Reach by Platform</h3>
+                        <canvas id="marketComparisonChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Content Performance Score</h3>
+                        <canvas id="performanceScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AUTOMATION TAB -->
+        <div id="automation" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">⚙️</span> Automation Configuration</h2>
+                    <span class="status-badge" style="background: var(--success); color: white;">🟢 ACTIVE</span>
+                </div>
+                
+                <table class="metrics-table">
+                    <tbody>
+                        <tr>
+                            <td><strong>Cron Job Name</strong></td>
+                            <td>code>realtor-one-complete-marketing</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Schedule</strong></td>
+                            <td>Every Monday at 8:07 AM GMT+8</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content Generated</strong></td>
+                            <td>14 pieces per run (7 US + 7 Nigeria)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rotation Cycle</strong></td>
+                            <td>4 weeks (News → Tips → Stories → Education)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Output Directory</strong></td>
+                            <td>code>/workspace/content/</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Last Execution</strong></td>
+                            <td>March 29, 2026 at 2:42 PM CST</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Next Execution</strong></td>
+                            <td>April 6, 2026 at 8:07 AM CST</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">🔗</span> Quick Actions</h2>
+                </div>
+                
+                <div class="quick-links">
+                    <a href="https://www.realtoronecrm.com/" class="quick-link" target="_blank">🌐 RealtorOne Website</a>
+                    <a href="https://www.realtoronecrm.com/signup" class="quick-link" target="_blank">✍️ Signup Page</a>
+                    <a href="./content/" class="quick-link" onclick="alert('Opens content folder')">📂 Content Folder</a>
+                    <a href="./assets/" class="quick-link" onclick="alert('Opens assets folder')">🎨 Brand Assets</a>
+                    <a href="./realtor-one-cron.yaml" class="quick-link" onclick="alert('Opens cron configuration')">⚙️ Cron Config</a>
+                    <a href="./content/content-tracking.md" class="quick-link" onclick="alert('Opens tracking file')">📊 Tracking</a>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2><span class="section-icon">🎨</span> Brand Assets</h2>
+                </div>
+                
+                <div class="asset-grid">
+                    <div class="asset-card">
+                        <div class="asset-preview" style="background: #0D3B2E; color: #F4B942;">🌙</div>
+                        <div class="asset-name">Dark Logo</div>
+                        <div class="asset-path">assets/realtorone-logo-dark.png</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">For dark backgrounds</div>
+                    </div>
+                    
+                    <div class="asset-card">
+                        <div class="asset-preview" style="background: #fff; border: 2px solid #ddd;">☀️</div>
+                        <div class="asset-name">Light Logo</div>
+                        <div class="asset-path">assets/realtorone-logo-light.png</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">For light backgrounds</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 25px 0 15px; color: var(--primary-green);">Brand Colors</h3>
+                
+                <div class="color-swatch">
+                    <div class="color-box" style="background: #0D3B2E;"></div>
+                    <div class="color-info">
+                        <h4>Primary Green</h4>
+                        <code>#0D3B2E</code> — Headers, backgrounds
+                    </div>
+                </div>
+                
+                <div class="color-swatch">
+                    <div class="color-box" style="background: #F4B942;"></div>
+                    <div class="color-info">
+                        <h4>Accent Gold</h4>
+                        <code>#F4B942</code> — CTAs, buttons
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="footer">
+            <p>RealtorOne CRM Content Automation System</p>
+            <p style="margin-top: 5px;">Last Updated: March 29, 2026 | Next Run: April 6, 2026 at 8:07 AM</p>
+        </div>
+    </div>
+    
+    
+    <!-- Content Preview Modal -->
+    <div id="contentModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Content Preview</div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="modalContent" class="modal-content-preview">
+                    Content preview will appear here...
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <a href="https://www.realtoronecrm.com/signup" target="_blank" class="btn btn-primary">View Signup Page →</a>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Initialize charts when performance tab is shown
+            if (tabId === 'performance') {
+                setTimeout(initPerformanceCharts, 100);
+            }
+        }
+        
+        // Content Filtering
+        function filterContent(status) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('#contentGrid .content-card').forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // Modal Functions
+        function previewContent(contentId, title) {
+            const contentData = {
+                'us-blog': `The #1 Reason Agents Lose $50K+ in Commissions (And It's Not What You Think)
+
+73% of real estate leads never receive a follow-up after the first 48 hours.
+
+Let that sink in. Nearly three out of four potential buyers and sellers reach out, express interest, and then... crickets. Meanwhile, another agent—often with less experience and a weaker listing—swoops in and closes the deal.
+
+The difference? It wasn't market knowledge. It wasn't negotiation skills. It was a system.
+
+If you're reading this while mentally scanning your unread emails and forgotten voicemails, you're not alone. The agent who feels overwhelmed isn't lazy—they're human.
+
+But here's what separates top producers from everyone else: They don't rely on memory. They rely on systems.
+
+## The $50K+ Leak in Your Business
+
+Let's do some quick math. The average real estate commission is around 3% per side. On a $400,000 home, that's $12,000. Lose just four of those deals a year because of poor follow-up? That's $48,000—gone.
+
+And that's conservative. Many agents lose far more.
+
+The worst part? You probably don't even know it's happening. The lead that didn't call back? They bought from someone else. The prospect who "needed to think about it"? They signed with the agent who followed up the next day.
+
+## How RealtorOne Agents Handle 3X the Volume Without 3X the Stress
+
+RealtorOne was built for one purpose: to make sure no lead falls through the cracks.
+
+When a prospect fills out a form on your website, RealtorOne instantly creates a contact record, triggers a personalized email sequence, and schedules follow-up tasks. You don't have to remember anything—the system remembers for you.
+
+Try RealtorOne free today: https://www.realtoronecrm.com/signup`,
+                'nigeria-blog': `Nigeria Real Estate 2026: Where Smart Agents Are Banking Their Future
+
+The Nigerian real estate market isn't just recovering—it's transforming. From the refinery-driven boom in Lagos to the satellite town renaissance in Abuja, opportunities are emerging faster than many agents can track them.
+
+## Lagos: The Lekki-Epe Corridor Is on Fire
+
+If you're not selling along the Lekki-Ajah corridor right now, you're leaving money on the table. The completion of the Dangote Refinery has triggered a domino effect that's reshaping everything from land values to buyer demographics.
+
+Properties in Epe and Ibeju-Lekki that sold for ₦5M per plot in 2022 are now commanding ₦15-20M. That's not speculation—that's infrastructure meeting demand.
+
+## The Diaspora Goldmine
+
+Nigerians in the UK, US (Houston, Atlanta, New York), Canada (Toronto), and UAE (Dubai) are actively hunting for properties back home. They have the capital, the intent, and the urgency.
+
+What they don't have? Agents who understand how to serve them.
+
+## Documentation: Your Competitive Edge
+
+In Nigerian real estate, documentation delays kill more deals than price objections. A buyer ready to pay "outright" for that Lekki Phase 2 plot will walk if the C of O paperwork drags.
+
+Top agents are building systems—organized files, Survey Plans ready, Deed of Assignment templates prepared. When a diaspora buyer asks "What's the title status?" they get an answer in minutes, not weeks.
+
+Start closing more Nigerian real estate deals with RealtorOne: https://www.realtoronecrm.com/signup`,
+                'us-email': `Subject: Your market advantage this week
+
+Hey [First Name], let's talk about something costing you deals.
+
+This week's insight:
+
+The market is shifting—and the agents who see it first will own it.
+
+Inventory is finally recovering, up 7.9% year-over-year nationally. After years of brutal scarcity, buyers are getting options again. Meanwhile, mortgage rates have stabilized in the 5.9%-6.9% range, giving previously frozen buyers the confidence to jump back in.
+
+This is your window.
+
+Quick wins for this week:
+• Lead with inventory data—buyers want to know what's available
+• Position yourself as the "market pulse" resource
+• Follow up on leads from 3-6 months ago (they're active again)
+
+The agents using systems to automate the busywork? They're capturing deals while everyone else is updating spreadsheets.
+
+Claim your free trial: https://www.realtoronecrm.com/signup`,
+                'nigeria-email': `Subject: The Lekki-Epe corridor is exploding 🚀
+
+Hey [First Name], let's talk about something costing you deals.
+
+While some agents are still chasing the same saturated listings in Ikoyi and Victoria Island, a quiet land rush is happening 40 kilometers east—and most haven't noticed yet.
+
+This Week's Insight: The Lekki-Epe Corridor Boom
+
+The Dangote Refinery isn't just Nigeria's largest industrial project; it's a demand generator. Workers, suppliers, and supporting businesses need housing. And they're buying now.
+
+Here's what I'm seeing:
+
+• 20-35% annual land appreciation in Epe/Ibeju-Lekki
+• Diaspora buyers from London, Houston, Toronto actively hunting
+• Infrastructure (roads, power) following the money
+
+The agents who built systems for remote buyers? They're closing off-plan deals in bulk.
+
+Want to organize your Nigerian real estate leads better? RealtorOne CRM has native WhatsApp integration built for how Nigerian agents actually work.
+
+Claim your free trial: https://www.realtoronecrm.com/signup`,
+                'us-facebook': `🔥 HOUSING INVENTORY IS FINALLY CREEPING BACK—ARE YOU READY?
+
+I talked to an agent in Austin last week who told me something interesting. Six months ago, she was begging for listings. Now? She's got buyers asking "What else is out there?" for the first time in years.
+
+The market is shifting. Inventory is up 7.9% nationally. Mortgage rates have stabilized. Buyers who were frozen in place are thawing out.
+
+This is your window.
+
+Not everyone sees it yet. Some agents are still operating like it's 2021—expecting bidding wars on every listing, pricing like scarcity is permanent.
+
+The smart agents? They're adjusting their messaging, updating their buyer pipelines, and positioning themselves as the "market pulse" resource.
+
+What inventory changes are you seeing in your market? Drop a 🔥 if you're seeing more options for buyers.
+
+Ready to automate your follow-up? Try RealtorOne free: https://www.realtoronecrm.com/signup
+
+#RealtorOne #RealEstateAgents #CRMForRealtors #RealEstateTips`,
+                'nigeria-facebook': `🔥 THE LEKKI-EPE CORRIDOR IS ON FIRE
+
+Three months ago, a Lagos agent I know took a gamble. She listed a half-dozen plots in Epe that her network called "too far." The buyers she targeted? Diaspora Nigerians in the UK and Canada who'd been watching the Dangote Refinery news and understood what was coming.
+
+Last week, she closed her fourth off-plan deal this quarter. All remote. All full payment upfront.
+
+Here's the thing: 20-35% annual land appreciation isn't a projection anymore—it's what's happening right now along the Lekki-Epe axis.
+
+The Dangote Refinery. The Lekki Deep Sea Port. The Free Trade Zone. Infrastructure is following the money, and smart money is buying land.
+
+If you're still fighting over the same saturated Ikoyi listings while this land rush happens... well, you do the math.
+
+Drop a 🔥 if you're seeing this shift in your market.
+
+Organize your leads and never miss a follow-up: https://www.realtoronecrm.com/signup
+
+#RealtorOne #NigerianRealEstate #LekkiRealEstate #DangoteRefinery #RealEstateInvesting`,
+                'us-instagram': `The agents winning in 2026 aren't working harder—they're reading the market right 📊
+
+Inventory is finally climbing back up.
+
+Mortgage rates have stabilized.
+
+And the agents using AI to automate the busywork? They're capturing deals while everyone else is still updating spreadsheets.
+
+The shift is happening.
+
+Buyers who were frozen for years are moving again. Sellers are realizing the days of automatic bidding wars are fading.
+
+This is when the prepared agents pull ahead.
+
+You don't need more hours. You need better systems.
+
+Link in bio to try RealtorOne free 👆 https://www.realtoronecrm.com/signup
+
+.
+.
+.
+#RealtorLife #RealEstateCRM #RealtorTips #RealEstateMarketing #RealtorOne #LeadGeneration #ClosingDeals #RealEstateAgent #PropTech #AgentLife #HousingMarket #RealEstate2026`,
+                'nigeria-instagram': `The Nigerian agents closing the most deals in 2026 all have one thing in common 👇
+
+They stopped competing for the same tired listings in saturated markets. 📍
+
+Instead, they studied the documentation landscape (C of O vs Governor's Consent), built systems to serve diaspora buyers from London to Dubai ✈️, and leveraged automation to respond at 3 AM when overseas clients are scrolling.
+
+They know Epe and Ibeju-Lekki aren't "future plays" anymore—they're happening NOW with 20-35% annual appreciation. 📈
+
+The agents winning aren't working harder.
+
+They're working smarter.
+
+Link in bio to try RealtorOne 👆 https://www.realtoronecrm.com/signup
+
+.
+.
+.
+#RealtorLife #NigerianRealEstate #LekkiRealEstate #EpeLands #RealEstateNigeria #PropertyInvestment #DangoteRefinery #DiasporaInvestors #RealtorOne #RealEstateAgent`,
+                'us-linkedin': `The "great recalibration" is here—and it's separating prepared agents from the pack.
+
+For three years, the real estate market felt like a pressure cooker. Skyrocketing prices. Fierce competition. Buyers waiving inspections just to get a foot in the door.
+
+But 2026 isn't about boom or bust. It's about balance.
+
+Inventory is recovering nationally, up 7.9% year-over-year. Active listings have climbed to 914,860 nationwide. Mortgage rates have stabilized in the 5.9%-6.9% range, giving previously frozen buyers the confidence to jump back in.
+
+This is the shift that separates agents who prepared from agents who are still waiting for "the market to come back."
+
+The data is clear: buyers are getting options again. The question is—will you be the agent they find when they're ready?
+
+Learn more: https://www.realtoronecrm.com/
+
+What's your take on the current market shift?`,
+                'nigeria-linkedin': `The Dangote Refinery isn't just changing Nigeria's energy sector—it's reshaping real estate from Lagos to the satellite towns.
+
+Here's the disconnect I'm seeing: too many agents are still fighting over the same saturated premium markets while a land rush happens in corridors they wrote off as "too far" eighteen months ago.
+
+The real volume right now? Growth corridors and diaspora buyers.
+
+The data: Epe and Ibeju-Lekki are seeing 20-35% annual appreciation. Abuja satellite towns—Kubwa, Lugbe, Gwagwalada—have entry prices 40-60% below central districts but are seeing diaspora-driven demand that central districts can't match.
+
+The agents building systems for remote buyers, organizing documentation workflows, and positioning themselves as the "Nigeria property expert" for UK/US/Canada-based clients? They're closing bulk off-plan deals while others chase individual listings.
+
+This isn't a bubble. It's infrastructure meeting demand.
+
+Learn more: https://www.realtoronecrm.com/
+
+Are you seeing the diaspora buyer shift in your market?`,
+                'us-twitter': `Tweet 1/3 🧵
+
+Inventory up 7.9% nationally. Rates stabilizing at 6.3%.
+
+The agents who prepared for this shift are about to clean up.
+
+The ones who didn't? They're still waiting for "the market to come back."
+
+Full breakdown → https://www.realtoronecrm.com/
+
+---
+
+Tweet 2/3
+
+Texas: Austin inventory up 14.8% YoY.
+Florida: Insurance costs now a deal factor.
+California: Sub-$700K condos seeing multiple offers again.
+
+Every market tells a story—are you listening?
+
+---
+
+Tweet 3/3
+
+AI isn't replacing agents. It's replacing agents who refuse to adapt.
+
+RealtorOne automates your follow-up so you never lose a lead.
+
+Try free → https://www.realtoronecrm.com/signup`,
+                'nigeria-twitter': `Tweet 1/3 🧵
+
+Dangote Refinery is driving 20-35% land appreciation along the Lekki-Epe corridor.
+
+The agents who saw this coming 18 months ago?
+
+They're closing off-plan deals in bulk.
+
+Full breakdown → https://www.realtoronecrm.com/
+
+---
+
+Tweet 2/3
+
+Abuja satellite towns (Kubwa, Lugbe, Gwagwalada) are waking up.
+
+Entry prices 40-60% lower than central districts.
+
+Diaspora buyers actively hunting.
+
+---
+
+Tweet 3/3
+
+Documentation confusion kills deals in Nigeria.
+
+RealtorOne helps you organize client files and never lose a lead.
+
+Try free → https://www.realtoronecrm.com/signup`,
+                'us-reddit': `Market update: inventory finally creeping back and what it means for buyer agents right now
+
+Hey everyone—wanted to share what I'm seeing as inventory starts recovering in most major markets. The data is actually pretty encouraging if you know how to use it.
+
+National inventory is up 7.9% year-over-year. Mortgage rates have stabilized in that 5.9%-6.9% range. Buyers who were frozen for the past couple years are finally starting to move again.
+
+Here's what I'm telling agents to focus on right now:
+
+1. Lead with inventory data—buyers are hungry for options and want to know what's available
+
+2. Update your buyer pipelines—leads from 3-6 months ago are active again
+
+3. Position yourself as the "market pulse" resource, not just another agent
+
+4. Use systems to automate follow-up so you never lose a lead to forgetfulness
+
+Curious what approaches others are using—what's working for your follow-up right now?`,
+                'nigeria-reddit': `Nigeria market update: The Lekki-Epe boom and how agents are adapting to diaspora buyer demand
+
+Hey everyone,
+
+Been watching the Lekki-Epe corridor explode over the past year and thought I'd share what I'm seeing from the ground—both the opportunities and how the smart agents are capturing them.
+
+The Dangote Refinery effect is real. Epe and Ibeju-Lekki are seeing 20-35% annual appreciation, and it's not speculation anymore—infrastructure is following the money.
+
+Here's what's working for agents I know:
+
+1. Building systems for diaspora buyers (UK, US, Canada, Dubai)—they buy remote, pay outright
+
+2. Having documentation ready (C of O, Survey Plan, Deed of Assignment)—delays kill deals
+
+3. Using WhatsApp for everything—status updates, video walkthroughs, quick responses
+
+4. Positioning in growth corridors rather than fighting over saturated premium markets
+
+The agents winning right now aren't working harder—they're working smarter with systems.
+
+What approaches are working for your Nigerian real estate business?`
+            };
+            
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').textContent = contentData[contentId] || 'Content preview not available.';
+            document.getElementById('contentModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('contentModal').classList.remove('active');
+        }
+        
+        function showContentDetails(week) {
+            const details = {
+                'week1': 'Week 1: Market News & Trends\n\n✅ All 14 content pieces published\n📊 Total reach: 2,400+\n💬 Engagement: 4.8% avg\n🔗 CTR: 2.1% avg',
+                'week2': 'Week 2: CRM Tips & Productivity\n\n⏳ Scheduled for April 6, 2026\n📝 Will generate 14 pieces\n🎯 Focus: WhatsApp integration, automation workflows\n🇺🇸 US: Email automation, pipeline tracking\n🇳🇬 Nigeria: WhatsApp lead management',
+                'week3': 'Week 3: Agent Success Stories\n\n⏸️ Pending generation\n📅 Will generate on April 13, 2026\n📝 Will include case studies and testimonials',
+                'week4': 'Week 4: Client Education\n\n⏸️ Pending generation\n📅 Will generate on April 20, 2026\n📝 Shareable content for clients'
+            };
+            
+            document.getElementById('modalTitle').textContent = 'Week Details';
+            document.getElementById('modalContent').textContent = details[week] || 'Details not available.';
+            document.getElementById('contentModal').classList.add('active');
+        }
+        
+        // Initialize Charts
+        function initCharts() {
+            // Platform Performance Chart
+            const platformCtx = document.getElementById('platformChart');
+            if (platformCtx) {
+                new Chart(platformCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Blog', 'Email', 'Facebook', 'Instagram', 'LinkedIn', 'X/Twitter', 'Reddit'],
+                        datasets: [{
+                            label: 'US',
+                            data: [342, 89, 567, 423, 289, 1200, 45],
+                            backgroundColor: '#1976d2'
+                        }, {
+                            label: 'Nigeria',
+                            data: [298, 156, 445, 389, 234, 892, 67],
+                            backgroundColor: '#388e3c'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+            
+            // Weekly Output Chart
+            const weeklyCtx = document.getElementById('weeklyChart');
+            if (weeklyCtx) {
+                new Chart(weeklyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Content Pieces',
+                            data: [14, 0, 0, 0],
+                            borderColor: '#0D3B2E',
+                            backgroundColor: 'rgba(13, 59, 46, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true, max: 20 } }
+                    }
+                });
+            }
+        }
+        
+        function initPerformanceCharts() {
+            // Engagement Chart
+            const engagementCtx = document.getElementById('engagementChart');
+            if (engagementCtx) {
+                new Chart(engagementCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['X/Twitter', 'Blog', 'Instagram', 'Facebook', 'LinkedIn', 'Reddit'],
+                        datasets: [{
+                            data: [32, 28, 22, 12, 4, 2],
+                            backgroundColor: ['#1DA1F2', '#0D3B2E', '#E4405F', '#1877F2', '#0A66C2', '#FF4500']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+            
+            // CTR Chart
+            const ctrCtx = document.getElementById('ctrChart');
+            if (ctrCtx) {
+                new Chart(ctrCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Email', 'Blog', 'X/Twitter', 'LinkedIn', 'Facebook', 'Reddit', 'Instagram'],
+                        datasets: [{
+                            label: 'CTR %',
+                            data: [18.8, 4.7, 2.8, 2.1, 1.9, 1.8, 1.2],
+                            backgroundColor: '#F4B942'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        indexAxis: 'y'
+                    }
+                });
+            }
+            
+            // Market Comparison
+            const marketCtx = document.getElementById('marketComparisonChart');
+            if (marketCtx) {
+                new Chart(marketCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Blog', 'Email', 'Facebook', 'Instagram', 'LinkedIn', 'X/Twitter', 'Reddit'],
+                        datasets: [{
+                            label: 'US',
+                            data: [85, 45, 90, 75, 60, 95, 40],
+                            borderColor: '#1976d2',
+                            backgroundColor: 'rgba(25, 118, 210, 0.2)'
+                        }, {
+                            label: 'Nigeria',
+                            data: [75, 80, 70, 70, 50, 75, 60],
+                            borderColor: '#388e3c',
+                            backgroundColor: 'rgba(56, 142, 60, 0.2)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+            
+            // Performance Score
+            const scoreCtx = document.getElementById('performanceScoreChart');
+            if (scoreCtx) {
+                new Chart(scoreCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Email', 'Blog', 'Instagram', 'Facebook', 'LinkedIn', 'Reddit'],
+                        datasets: [{
+                            label: 'Performance Score',
+                            data: [95, 88, 76, 68, 64, 58],
+                            backgroundColor: ['#F4B942', '#0D3B2E', '#F4B942', '#0D3B2E', '#F4B942', '#0D3B2E']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true, max: 100 } }
+                    }
+                });
+            }
+        }
+        
+        // Initialize on load
+        window.onload = initCharts;
+        
+        // Close modal on overlay click
+        document.getElementById('contentModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>
